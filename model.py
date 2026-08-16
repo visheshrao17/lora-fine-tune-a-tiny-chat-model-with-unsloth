@@ -180,8 +180,22 @@ def build_sft_trainer(model, tokenizer, dataset, training_args, max_seq_length=2
 
     return trainer
 
-# Step 17 - run_sft_training (not yet solved)
-# TODO: implement
+# Step 17 - run_sft_training
+from trl import SFTTrainer
+def run_sft_training(trainer):
+    try:
+        result = trainer.train()
+    except Exception as e:
+        if "PicklingError" in type(e).__name__ and "SFTConfig" in str(e):
+            # Avoid the TRL SFTConfig pickle identity issue by disabling
+            # checkpoint saving during this short training run.
+            trainer.args.save_strategy = "no"
+            trainer.args.save_steps = 0
+            result = trainer.train()
+        else:
+            raise
+
+    return float(result.metrics["train_loss"])
 
 # Step 18 - switch_to_inference_mode (not yet solved)
 # TODO: implement
